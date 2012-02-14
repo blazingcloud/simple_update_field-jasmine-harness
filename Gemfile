@@ -29,6 +29,11 @@ gem 'jquery-rails'
 
 group :test, :development do
   gem 'rspec-rails'
+  gem 'autotest'
+  gem 'capybara'
+  gem 'jasmine-rails'
+  gem 'guard-rails-assets'
+  gem 'guard-jasmine-headless-webkit'
 end
 
 group :development do
