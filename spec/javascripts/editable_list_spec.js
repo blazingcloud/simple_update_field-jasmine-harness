@@ -6,10 +6,37 @@ describe("Editable",function() {
     expect(Editable()).toBeDefined()
   })
 
+  describe("without a resource-uri", function() {
+    beforeEach(function(){
+      var fixture = "<div class='phrase'><span class='text'>CAKE</span></div>"
+      setFixtures(fixture)
+    });
+    describe("with editable declared",function() {
+      beforeEach(function() {
+
+        Editable(selector)
+      })
+      describe("post to server",function() {
+        describe("after clicking and editing",function() {
+
+          it("raises error without resource-uri attribute",function() {
+
+            $(selector).filter(':first').trigger('click.editable')
+            $(selector).filter(':first').trigger('blur.editable')
+
+            expect($('.editable-errors').filter(':first').text()).toMatch(
+              "expected editable-resource-uri attribute"
+            )
+          })
+        })
+      })
+    })
+  })
+
   describe("with a single match in dom",function() {
 
     beforeEach(function(){
-      var fixture = "<div class='phrase'><span class='text'>CAKE</span></div>"
+      var fixture = "<div class='phrase'><span editable-resource-uri='http://s/r/i' class='text'>CAKE</span></div>"
       setFixtures(fixture)
     });
 
@@ -24,18 +51,7 @@ describe("Editable",function() {
         Editable(selector)
       })
 
-      //
       describe("post to server",function() {
-        describe("after clicking and editing",function() {
-          it("raises error without resource-url attribute",function() {
-            $(selector).filter(':first').trigger('click.editable')
-            $(selector).filter(':first').trigger('blur.editable')
-
-            expect($('.editable-errors').filter(':first').text()).toEqual(
-              "expected editable-resource-uri attribute in form http://server/resource/id"
-            )
-          })
-        })
         it("blur transmits the input data from the current editable to the resource-url",function() {
           expect(false).toBeTruthy()
         })
@@ -177,9 +193,9 @@ describe("Editable",function() {
 
   describe("with multiple matches in dom",function() {
     beforeEach(function(){
-      var fixture  = "<div class='phrase'><span id='first'  class='text'>CAKE1</span></div>"
-          fixture += "<div class='phrase'><span id='second' class='text'>CAKE2</span></div>"
-          fixture += "<div class='phrase'><span id='third'  class='text'>CAKE3</span></div>"
+      var fixture  = "<div class='phrase'><span id='first'  editable-resource-uri='http://s/r/i' class='text'>CAKE1</span></div>"
+      fixture += "<div class='phrase'><span id='second' editable-resource-uri='http://s/r/i' class='text'>CAKE2</span></div>"
+      fixture += "<div class='phrase'><span id='third'  editable-resource-uri='http://s/r/i' class='text'>CAKE3</span></div>"
       setFixtures(fixture)
     });
     describe("with editable declared",function() {
@@ -222,19 +238,19 @@ describe("Editable",function() {
               expect($(selector).filter('#first').filter(':input').size()).toBe(1)
             })
           })
-            it("other keys do nothing", function () {
-              // nothing if focused
-              expect($(selector).filter(':focus').size()).toBe(0)
-              $(selector).filter(':first').trigger('click.editable')
-              // #first becomes focused
-              expect($(selector).filter('#first').filter(':focus').size()).toBe(1)
-              var e = jQuery.Event("keydown.editable", { keyCode: 99 })
-              $(selector).filter(':first').trigger(e)
-              // nothing changes - still only one
-              expect($(selector).filter(':input').size()).toBe(1)
-              // and it is the same one
-              expect($(selector).filter('#first').filter(':focus').size()).toBe(1)
-            })
+          it("other keys do nothing", function () {
+            // nothing if focused
+            expect($(selector).filter(':focus').size()).toBe(0)
+            $(selector).filter(':first').trigger('click.editable')
+            // #first becomes focused
+            expect($(selector).filter('#first').filter(':focus').size()).toBe(1)
+            var e = jQuery.Event("keydown.editable", { keyCode: 99 })
+            $(selector).filter(':first').trigger(e)
+            // nothing changes - still only one
+            expect($(selector).filter(':input').size()).toBe(1)
+            // and it is the same one
+            expect($(selector).filter('#first').filter(':focus').size()).toBe(1)
+          })
         })
       })
     })

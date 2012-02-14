@@ -105,6 +105,9 @@ Editable = function(selector) {
       if (!($(el).attr('editable-resource-uri'))) {
         all_good = false
        }
+      if ($(el).attr('editable-resource-uri') == "") {
+        all_good = false
+       }
     })
     if(!all_good) {
       $('body').append('<div class="editable-errors">expected editable-resource-uri attribute in form http://server/resource/id</div>')
