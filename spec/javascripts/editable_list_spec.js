@@ -24,6 +24,23 @@ describe("Editable",function() {
         Editable(selector)
       })
 
+      //
+      describe("post to server",function() {
+        describe("after clicking and editing",function() {
+          it("raises error without resource-url attribute",function() {
+            $(selector).filter(':first').trigger('click.editable')
+            $(selector).filter(':first').trigger('blur.editable')
+
+            expect($('.editable-errors').filter(':first').text()).toEqual(
+              "expected editable-resource-uri attribute in form http://server/resource/id"
+            )
+          })
+        })
+        it("blur transmits the input data from the current editable to the resource-url",function() {
+          expect(false).toBeTruthy()
+        })
+      })
+
       describe("click event handler", function() {
         it("turns a element into an input field",function() {
           // best jquery practice - use pseudo selectors after
@@ -104,9 +121,6 @@ describe("Editable",function() {
           expect($(selector).filter(':first').text()).toEqual("are you a kitty?")
 
         })
-        it("transmits the input data from the current editable to the server",function() {
-
-        })
       })
       describe("hover event handler", function() {
         it("turns on editable hover class",function() {
@@ -155,10 +169,7 @@ describe("Editable",function() {
 
       describe("enter key event handler", function() {
         it("triggers complete edit event",function() {
-        })
-      })
-      describe("focus change event",function() {
-        it("triggers complete edit event",function() {
+          expect(false).toBeTruthy()
         })
       })
     })

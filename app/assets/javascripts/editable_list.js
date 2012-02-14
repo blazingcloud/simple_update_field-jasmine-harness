@@ -97,10 +97,20 @@ Editable = function(selector) {
     })
   }
   
-  install_edit_notions(selector)
-  annotate_editable_with_position(selector)
-
-  $(selector).data('editable','installed')
+  var install = function() {
+    install_edit_notions(selector)
+    annotate_editable_with_position(selector)
+    var all_good = true
+    $(selector).each(function(i,el){
+      if (!($(el).attr('editable-resource-uri'))) {
+        all_good = false
+       }
+    })
+    if(!all_good) {
+      $('body').append('<div class="editable-errors">expected editable-resource-uri attribute in form http://server/resource/id</div>')
+    }
+    $(selector).data('editable','installed')
+  }()
   return self;
 }
 Editable.TAB_KEY = 9 // tab is #9
