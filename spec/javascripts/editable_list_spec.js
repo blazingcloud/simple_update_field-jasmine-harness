@@ -6,27 +6,39 @@ describe("Editable",function() {
     expect(Editable()).toBeDefined()
   })
 
-  describe("without a resource-uri", function() {
+  describe("needs an attribute editable-resource-uri", function() {
     beforeEach(function(){
-      var fixture = "<div class='phrase'><span class='text'>CAKE</span></div>"
+      var fixture = "<div class='phrase'>"+
+        "<span class='text'>CAKE</span>"+
+        "</div>"
+      // removed from dom each
+      // test
       setFixtures(fixture)
     });
     describe("with editable declared",function() {
       beforeEach(function() {
-
+        // Construct
         Editable(selector)
       })
       describe("post to server",function() {
         describe("after clicking and editing",function() {
+          describe("error", function() {
+            it("resource-uri attribute",function() {
 
-          it("raises error without resource-uri attribute",function() {
+              $(selector)
+              .filter(':first')
+              .trigger('click.editable')
+              $(selector)
+              .filter(':first')
+              .trigger('blur.editable')
 
-            $(selector).filter(':first').trigger('click.editable')
-            $(selector).filter(':first').trigger('blur.editable')
-
-            expect($('.editable-errors').filter(':first').text()).toMatch(
-              "expected editable-resource-uri attribute"
-            )
+              expect($('.editable-errors')
+                     .filter(':first')
+                     .text()
+                    ).toMatch(
+                    "expected editable-resource-uri attribute"
+                    )
+            })
           })
         })
       })
@@ -36,88 +48,101 @@ describe("Editable",function() {
   describe("with a single match in dom",function() {
 
     beforeEach(function(){
-      var fixture = "<div class='phrase'><span editable-resource-uri='http://s/r/i' class='text'>CAKE</span></div>"
+      var fixture = "<div class='phrase'>"+
+        "<span "+
+        " editable-resource-uri='http://s/r/i' "+
+      " class='text'>CAKE</span>"+
+        "</div>"
       setFixtures(fixture)
     });
 
-    it("Editable list takes a selector to install itself with",function() {
+    it("selector modifies dom",function() {
       Editable(selector)
       expect($(selector).data('editable')).toBeDefined()
     })
 
-    describe("with editable declared",function() {
+    describe("after installation",function() {
       beforeEach(function() {
 
         Editable(selector)
       })
 
-      describe("post to server",function() {
-        it("blur transmits the input data from the current editable to the resource-url",function() {
+      describe("changes to the element are saved",function() {
+        it("when editing is complete",function() {
           expect(false).toBeTruthy()
         })
       })
 
-      describe("click event handler", function() {
-        it("turns a element into an input field",function() {
-          // best jquery practice - use pseudo selectors after
-          // using natural css selectors
-          expect($(selector).filter(':input').size()).toBe(0)
-          $(selector).filter(':first').trigger('click.editable')
-          expect($(selector).filter(':input').size()).toBe(1)
-        })
-        it("turns a element into an input field with the same classes",function() {
-          $(selector).addClass('cake').addClass('oat')
-          $(selector).filter(':first').trigger('click.editable')
-          expect($(selector).filter('.cake').size()).toBe(1)
-          expect($(selector).filter('.oat').size()).toBe(1)
-        })
-        it("turns a element into an input field with the same id",function() {
-          $(selector).attr('id','boom')
-          $(selector).filter(':first').trigger('click.editable')
-          expect($(selector).filter('#boom').size()).toBe(1)
-        })
-        it("turns a element CDATA text into input field value",function() {
-          $(selector).filter(':first').text("Lily")
-          $(selector).filter(':first').trigger('click.editable')
-          expect($(selector).filter(':first').val()).toEqual("Lily")
-        })
-        it("copies custom attr editable-index",function() {
-          $(selector).attr('editable-index','333')
-          $(selector).filter(':first').trigger('click.editable')
-          expect($(selector).filter(':input').attr('editable-index')).toBe('333')
-        })
-        it("turns a element into an input field with the previous data",function() {
-          // data is used in rails and jquery for storage of various properties
-          $(selector).data('hi',1)
-          $(selector).data('hello',2)
-          var expected_data = $(selector).data();
-          $(selector).filter(':first').trigger('click.editable')
-          // this is the general pattern for iterating correctly in a hash
-          // in javascript 
-          for(var prop in expected_data) {
-            // ignore parent prototype properties
-            if(expected_data.hasOwnProperty(prop)) {
-              // use proprety expected_data[prop]
-              expect($(selector).filter(':input').data(prop)).toEqual(expected_data[prop])
+      describe("when editing begins", function() {
+        describe("an element ",function() {
+          it("is an input",function() {
+            // best jquery practice - use pseudo selectors after
+            // using natural css selectors
+            expect($(selector)
+                   .filter(':input')
+                   .size()
+                  ).toBe(0)
+                  $(selector)
+                  .filter(':first')
+                  .trigger('click.editable')
+                  expect($(selector)
+                         .filter(':input')
+                         .size()
+                        ).toBe(1)
+          })
+          it("has same classes",function() {
+            $(selector).addClass('cake').addClass('oat')
+            $(selector).filter(':first').trigger('click.editable')
+            expect($(selector).filter('.cake').size()).toBe(1)
+            expect($(selector).filter('.oat').size()).toBe(1)
+          })
+          it("has same id",function() {
+            $(selector).attr('id','boom')
+            $(selector).filter(':first').trigger('click.editable')
+            expect($(selector).filter('#boom').size()).toBe(1)
+          })
+          it("stores its text as input value",function() {
+            $(selector).filter(':first').text("Lily")
+            $(selector).filter(':first').trigger('click.editable')
+            expect($(selector).filter(':first').val()).toEqual("Lily")
+          })
+          it("has a unique position attribute: editable-index",function() {
+            $(selector).attr('editable-index','333')
+            $(selector).filter(':first').trigger('click.editable')
+            expect($(selector).filter(':input').attr('editable-index')).toBe('333')
+          })
+          it("has same jquery data",function() {
+            // data is used in rails and jquery for storage of various properties
+            $(selector).data('hi',1)
+            $(selector).data('hello',2)
+            var expected_data = $(selector).data();
+            $(selector).filter(':first').trigger('click.editable')
+            // this is the general pattern for iterating correctly in a hash
+            // in javascript 
+            for(var prop in expected_data) {
+              // ignore parent prototype properties
+              if(expected_data.hasOwnProperty(prop)) {
+                // use proprety expected_data[prop]
+                expect($(selector).filter(':input').data(prop)).toEqual(expected_data[prop])
+              }
             }
-          }
-          $(selector).filter(':input').data()
-        })
-        it("sets data element editable-was",function() {
-          var expected_tag =  $(selector).filter(':first').get(0).tagName
-          $(selector).filter(':first').trigger('click.editable')
-          expect($(selector).filter(':input').data('editable-was')).toEqual(expected_tag)
-        })
-        it("should focus the clicked element",function() {
-          expect($(selector).filter(':focus').size()).toBe(0)
-          $(selector).filter(':first').trigger('click.editable')
-          expect($(selector).filter(':focus').size()).toBe(1)
+            $(selector).filter(':input').data()
+          })
+          it("stores previous incarnation: tagName",function() {
+            var expected_tag =  $(selector).filter(':first').get(0).tagName
+            $(selector).filter(':first').trigger('click.editable')
+            expect($(selector).filter(':input').data('editable-was')).toEqual(expected_tag)
+          })
+          it("is focused",function() {
+            expect($(selector).filter(':focus').size()).toBe(0)
+            $(selector).filter(':first').trigger('click.editable')
+            expect($(selector).filter(':focus').size()).toBe(1)
 
+          })
         })
       })
-
-      describe("completed edit event handler", function() {
-        it("returns element to editable-was",function() {
+      describe("when editing is complete", function() {
+        it("an element becomes again editable-was",function() {
           // first there is a mountain
           var expected_tag =  $(selector).filter(':first').get(0).tagName
           expect($(selector).filter(expected_tag).size()).toBe(1)
@@ -128,7 +153,7 @@ describe("Editable",function() {
           // then there is
           expect($(selector).filter(expected_tag).size()).toBe(1)
         })
-        it("alters the CDATA text to the input value",function () {
+        it("the input value becomes the CDATA",function () {
           $(selector).filter(':first').text("SOUP")
           $(selector).filter(':first').trigger('click.editable')
           expect($(selector).filter(':first').val()).toEqual("SOUP")
@@ -193,9 +218,9 @@ describe("Editable",function() {
 
   describe("with multiple matches in dom",function() {
     beforeEach(function(){
-      var fixture  = "<div class='phrase'><span id='first'  editable-resource-uri='http://s/r/i' class='text'>CAKE1</span></div>"
+      var fixture  = "<div class='phrase'><span id='first' editable-resource-uri='http://s/r/i' class='text'>CAKE1</span></div>"
       fixture += "<div class='phrase'><span id='second' editable-resource-uri='http://s/r/i' class='text'>CAKE2</span></div>"
-      fixture += "<div class='phrase'><span id='third'  editable-resource-uri='http://s/r/i' class='text'>CAKE3</span></div>"
+      fixture += "<div class='phrase'><span id='third' editable-resource-uri='http://s/r/i' class='text'>CAKE3</span></div>"
       setFixtures(fixture)
     });
     describe("with editable declared",function() {
