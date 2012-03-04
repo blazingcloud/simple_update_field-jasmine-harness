@@ -1,13 +1,8 @@
-guard 'rails-assets' do
-  watch(%r{^.*/assets/.+$})
-  watch('config/application.rb')
-end
+# A sample Guardfile
+# More info at https://github.com/guard/guard#readme
 
-spec_location = "spec/javascripts/%s_spec"
-
-guard 'jasmine-headless-webkit' do
-  watch(%r{^app/views/.*\.jst$})
-  watch(%r{^public/javascripts/(.*)\.js$}) { |m| newest_js_file(spec_location % m[1]) }
-  watch(%r{^.*/assets/javascripts/(.*)\.(js|coffee)$}) { |m| newest_js_file(spec_location % m[1]) }
-  watch(%r{^spec/javascripts/(.*)_spec\..*}) { |m| newest_js_file(spec_location % m[1]) }
+guard 'jasmine' do
+  watch(%r{app/assets/javascripts/(.+)\.(js\.coffee|js|coffee)$}) { |m| "spec/javascripts/#{m[1]}_spec.#{m[2]}" }
+  watch(%r{spec/javascripts/(.+)_spec\.(js\.coffee|js|coffee)$})  { |m| puts m.inspect; "spec/javascripts/#{m[1]}_spec.#{m[2]}" }
+  watch(%r{spec/javascripts/spec\.(js\.coffee|js|coffee)$})       { "spec/javascripts" }
 end

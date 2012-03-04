@@ -1,14 +1,21 @@
+//2hrs march 2nd
+//1hrs march 2nd
+//3hrs march 4th
+//
 Editable = function(selector) {
   var self = this
   self.selector = selector
 
-  var replace_tag_from = function(tag_name,node) {
+  var create_tag_with = function(tag_name,node) {
     var elem = $('<'+tag_name+'/>');
-    elem.attr('class',node.attr('class'))
-    elem.attr('id',node.attr('id'))
-    elem.attr('editable-index',node.attr('editable-index'))
+    var attributes = node.get(0).attributes
+    for(var i = attributes.length-1; i >=0;i--) {
+      elem.attr(attributes[i].nodeName, attributes[i].nodeValue)
+    }
+
     elem.data(node.data())
     elem.data('editable-was',node.get(0).tagName)
+
     node.replaceWith(function() {
       return elem
     })
@@ -16,8 +23,10 @@ Editable = function(selector) {
   }
 
   var replace_input_from = function(node) {
-    var element = replace_tag_from('input',node)
-    element.val(node.text())
+    var element = create_tag_with('input',node)
+
+    element.data('original-text',node.text())
+    element.val(node.text().trim())
     return element
   }
 
@@ -27,9 +36,20 @@ Editable = function(selector) {
       install_edit_complete_notions(new_node)
       new_node.focus();
   }
+  var is_rollback_changes  = function() {
+    if (self.last_keydown_event) {
+      if (self.last_keydown_event.keyCode == Editable.ESC_KEY) {
+        return true
+      }
+    }
+    return false
+  }
   var is_blur_tab_redirect = function () {
     if (self.last_keydown_event) {
       if (self.last_keydown_event.keyCode == Editable.TAB_KEY) {
+        return true
+      }
+      if (self.last_keydown_event.keyCode == Editable.ENTER_KEY) {
         return true
       }
     }
@@ -47,10 +67,26 @@ Editable = function(selector) {
       throw 'Expected to be able to assign custom attribute editable-index'
     }
   }
-  self.complete_edit_event = function(event) {
-
+  self.rollback_edit_event = function(event) {
     var finished_node = $(this)
-    var element = replace_tag_from(finished_node.data('editable-was'),finished_node)
+    var element = create_tag_with(finished_node.data('editable-was'),finished_node)
+    element.text(element.data('original-text'))
+    install_edit_notions(element)
+  }
+  self.commit_to_remote_resource = function(node) {
+    uri       = node.attr('editable-resource-uri')
+    name      = node.attr('editable-resource-model')
+    attribute = node.attr('editable-resource-attribute')
+    data = {}
+    data[name] = {}
+    data[name][attribute] = node.val().trim()
+    $.post(uri, data)
+  }
+  self.complete_edit_event = function(event) {
+    
+    var finished_node = $(this)
+    commit_to_remote_resource(finished_node)
+    var element = create_tag_with(finished_node.data('editable-was'),finished_node)
     element.text(finished_node.val())
     install_edit_notions(element)
     
@@ -86,10 +122,15 @@ Editable = function(selector) {
         $(this).trigger('blur.editable')
         return false; // manually handle tab - no event propigation
       }
-        return true; // allow default propigation
+      if(is_rollback_changes()) {
+       $(this).trigger('rollback.editable')
+       return false;
+      }
+      return true // allow default propigation
     })
 
-    $(selector).bind('blur.editable',complete_edit_event)
+    $(selector).bind('blur.editable',self.complete_edit_event)
+    $(selector).bind('rollback.editable',self.rollback_edit_event)
   }
   var annotate_editable_with_position = function(selector) {
     $(selector).each(function(i,el) {
@@ -97,23 +138,31 @@ Editable = function(selector) {
     })
   }
   
+  var annotate_with_resource_errors = function(selector) {
+    $(selector).each(function(i,el){
+      if (!($(el).attr('editable-resource-uri')) ||
+            $(el).attr('editable-resource-uri') == "") {
+        $(el).parent().append('<div class="editable-errors">expected editable-resource-uri attribute in form http://server/resource/id</div>')
+       }
+      if (!($(el).attr('editable-resource-model')) ||
+            $(el).attr('editable-resource-model') == "") {
+        $(el).parent().append('<div class="editable-errors">expected editable-resource-model attribute in underscorized-rails form</div>')
+       }
+      if (!($(el).attr('editable-resource-attribute')) ||
+            $(el).attr('editable-resource-attribute') == "") {
+        $(el).parent().append('<div class="editable-errors">expected editable-resource-attribute attribute in underscorized-rails form </div>')
+       }
+    })
+  }
+
   var install = function() {
     install_edit_notions(selector)
     annotate_editable_with_position(selector)
-    var all_good = true
-    $(selector).each(function(i,el){
-      if (!($(el).attr('editable-resource-uri'))) {
-        all_good = false
-       }
-      if ($(el).attr('editable-resource-uri') == "") {
-        all_good = false
-       }
-    })
-    if(!all_good) {
-      $('body').append('<div class="editable-errors">expected editable-resource-uri attribute in form http://server/resource/id</div>')
-    }
+    annotate_with_resource_errors(selector)
     $(selector).data('editable','installed')
   }()
   return self;
 }
-Editable.TAB_KEY = 9 // tab is #9
+Editable.TAB_KEY   = 9   // tab is   #9
+Editable.ENTER_KEY = 13  // enter is #13
+Editable.ESC_KEY   = 27  // enter is #13

@@ -1,5 +1,22 @@
 describe("Editable",function() {
   var selector = '.phrase .text'
+  
+  var should_be_an_input_after_click =  function() {
+    // best jquery practice - use pseudo selectors after
+    // using natural css selectors
+    expect($(selector)
+           .filter(':input')
+           .size()
+          ).toBe(0)
+    $(selector)
+          .filter(':first')
+          .trigger('click.editable')
+    expect($(selector)
+          .filter(':input')
+          .size()
+         ).toBe(1)
+  }
+
 
   it("it has a constructor", function() {
     expect(Editable).toBeDefined()
@@ -20,9 +37,37 @@ describe("Editable",function() {
         // Construct
         Editable(selector)
       })
-      describe("post to server",function() {
-        describe("after clicking and editing",function() {
-          describe("error", function() {
+      describe("error messages in dom",function() {
+            it("resource-attribute attribute",function() {
+
+              $(selector)
+              .filter(':first')
+              .trigger('click.editable')
+              $(selector)
+              .filter(':first')
+              .trigger('blur.editable')
+
+              expect($('.editable-errors')
+                     .text()
+                    ).toMatch(
+                    "expected editable-resource-attribute attribute"
+                    )
+            })
+            it("resource-model attribute",function() {
+
+              $(selector)
+              .filter(':first')
+              .trigger('click.editable')
+              $(selector)
+              .filter(':first')
+              .trigger('blur.editable')
+
+              expect($('.editable-errors')
+                     .text()
+                    ).toMatch(
+                    "expected editable-resource-model attribute"
+                    )
+            })
             it("resource-uri attribute",function() {
 
               $(selector)
@@ -33,14 +78,11 @@ describe("Editable",function() {
               .trigger('blur.editable')
 
               expect($('.editable-errors')
-                     .filter(':first')
                      .text()
                     ).toMatch(
                     "expected editable-resource-uri attribute"
                     )
             })
-          })
-        })
       })
     })
   })
@@ -67,29 +109,36 @@ describe("Editable",function() {
         Editable(selector)
       })
 
-      describe("changes to the element are saved",function() {
+      describe("ajax request is sent",function() {
+        beforeEach(function() {
+          spyOn(jQuery.ajaxSettings, 'xhr').andCallFake(function() {
+            var newXhr = new FakeXMLHttpRequest();
+            ajaxRequests.push(newXhr);
+            return newXhr;
+          })
+        })
         it("when editing is complete",function() {
-          expect(false).toBeTruthy()
+          $(selector).filter(':first').attr('editable-resource-uri',"http://cake123/")
+          $(selector).filter(':first').attr('editable-resource-model',"phrase")
+          $(selector).filter(':first').attr('editable-resource-attribute',"text")
+
+          // become editable
+          $(selector).filter(':first').trigger('click.editable')
+          // change value
+          $(selector).filter(':first').val("passion")
+          // complete editing
+          $(selector).filter(':first').trigger('blur.editable')
+
+          request = mostRecentAjaxRequest()
+          expect(request).not.toBeNull()
+          expect(request.params).toMatch(/phrase%5Btext%5D=passion/)
+          expect(request.url).toMatch("http://cake123/")
         })
       })
 
       describe("when editing begins", function() {
         describe("an element ",function() {
-          it("is an input",function() {
-            // best jquery practice - use pseudo selectors after
-            // using natural css selectors
-            expect($(selector)
-                   .filter(':input')
-                   .size()
-                  ).toBe(0)
-                  $(selector)
-                  .filter(':first')
-                  .trigger('click.editable')
-                  expect($(selector)
-                         .filter(':input')
-                         .size()
-                        ).toBe(1)
-          })
+          it("is an input",should_be_an_input_after_click)
           it("has same classes",function() {
             $(selector).addClass('cake').addClass('oat')
             $(selector).filter(':first').trigger('click.editable')
@@ -110,6 +159,27 @@ describe("Editable",function() {
             $(selector).attr('editable-index','333')
             $(selector).filter(':first').trigger('click.editable')
             expect($(selector).filter(':input').attr('editable-index')).toBe('333')
+          })
+          it("has a resource uri : editable-resource-uri",function() {
+            $(selector).attr('editable-resource-uri','http://11')
+            $(selector).filter(':first').trigger('click.editable')
+            expect($(selector)
+                   .filter(':input')
+                   .attr('editable-resource-uri')).toBe('http://11')
+          })
+          it("has a resource name : editable-resource-model",function() {
+            $(selector).attr('editable-resource-model','dream')
+            $(selector).filter(':first').trigger('click.editable')
+            expect($(selector)
+                   .filter(':input')
+                   .attr('editable-resource-model')).toBe('dream')
+          })
+          it("has a resource attribute : editable-resource-attribute",function() {
+            $(selector).attr('editable-resource-attribute','vision')
+            $(selector).filter(':first').trigger('click.editable')
+            expect($(selector)
+                   .filter(':input')
+                   .attr('editable-resource-attribute')).toBe('vision')
           })
           it("has same jquery data",function() {
             // data is used in rails and jquery for storage of various properties
@@ -208,9 +278,15 @@ describe("Editable",function() {
       })
 
 
-      describe("enter key event handler", function() {
-        it("triggers complete edit event",function() {
-          expect(false).toBeTruthy()
+      describe("escape key", function() {
+        beforeEach(function() {
+          $(selector).filter(':first').trigger('click.editable')
+          // triffer ESC event
+          var e = jQuery.Event("keydown.editable", { keyCode: Editable.ESC_KEY })
+          $(selector).filter(':first').trigger(e)
+        })
+        describe("followed by a click",function() {
+          it("is an input",should_be_an_input_after_click)
         })
       })
     })
@@ -235,6 +311,56 @@ describe("Editable",function() {
       })
       describe("editable life-cycle",function() {
         describe("on editing node there is a keydown handler", function() {
+
+          describe("the esc key", function() {
+            it("returns the input to it's original value", function () {
+              // nothing if focused
+              expect($(selector).filter(':focus').size()).toBe(0)
+              $(selector).filter(':first').trigger('click.editable')
+              // #first becomes focused
+              expect($(selector).filter('#first').filter(':focus').size()).toBe(1)
+
+              var expected_value = $(selector).filter(':first').val()
+
+              // modify element value
+              $(selector).filter('#first').val("are you a kitty?")
+              // triffer ESC event
+              var e = jQuery.Event("keydown.editable", { keyCode: Editable.ESC_KEY })
+              $(selector).filter('#first').trigger(e)
+
+              expect($(selector).filter('#first').text()).toEqual(expected_value)
+
+            })
+          })
+
+          describe("the enter key",function() {
+            it("completes edit and moves to next editable", function () {
+              // nothing if focused
+              expect($(selector).filter(':focus').size()).toBe(0)
+              $(selector).filter(':first').trigger('click.editable')
+              // #first becomes focused
+              expect($(selector).filter('#first').filter(':focus').size()).toBe(1)
+              var e = jQuery.Event("keydown.editable", { keyCode: Editable.ENTER_KEY })
+              $(selector).filter(':first').trigger(e)
+
+              // #second becomes focused
+              expect($(selector).filter('#second').filter(':focus').size()).toBe(1)
+              // #second becomes input
+              expect($(selector).filter('#second').filter(':input').size()).toBe(1)
+            })
+            it("moves back to first editable after last", function () {
+              expect($(selector).filter(':focus').size()).toBe(0)
+
+              $(selector).filter('#third').trigger('click.editable')
+              expect($(selector).filter('#third').filter(':focus').size()).toBe(1)
+
+              var e = jQuery.Event("keydown.editable", { keyCode: Editable.ENTER_KEY })
+              $(selector).filter('#third').trigger(e)
+
+              expect($(selector).filter('#first').filter(':focus').size()).toBe(1)
+              expect($(selector).filter('#first').filter(':input').size()).toBe(1)
+            })
+          })
           describe("the tab key",function() {
             it("completes edit and moves to next editable", function () {
               // nothing if focused
