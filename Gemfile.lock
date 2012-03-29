@@ -136,6 +136,7 @@ GEM
       ffi (~> 1.0)
       multi_json (~> 1.0)
       rubyzip
+    simple_update_field (0.2.3)
     sprockets (2.0.3)
       hike (~> 1.2)
       rack (~> 1.0)
@@ -167,5 +168,6 @@ DEPENDENCIES
   rails (= 3.1.0)
   rspec-rails
   sass-rails
+  simple_update_field
   sqlite3
   uglifier

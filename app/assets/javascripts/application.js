@@ -5,6 +5,7 @@
 // the compiled file.
 //
 //= require jquery
+//= require editable_list
 //= require jquery_ujs
 //= require_tree .
 //

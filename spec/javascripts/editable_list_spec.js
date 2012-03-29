@@ -130,8 +130,10 @@ describe("Editable",function() {
           $(selector).filter(':first').trigger('blur.editable')
 
           request = mostRecentAjaxRequest()
+          console.log(request)
           expect(request).not.toBeNull()
           expect(request.params).toMatch(/phrase%5Btext%5D=passion/)
+          expect(request.method).toMatch(/PUT/)
           expect(request.url).toMatch("http://cake123/")
         })
       })
