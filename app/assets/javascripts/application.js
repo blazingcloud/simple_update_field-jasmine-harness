@@ -5,10 +5,10 @@
 // the compiled file.
 //
 //= require jquery
-//= require editable_list
+//= require simple_update_field
 //= require jquery_ujs
 //= require_tree .
 //
 $(document).ready(function() {
-  Editable('.phrase .text')
+  SimpleUpdateField('.phrase .text')
 })

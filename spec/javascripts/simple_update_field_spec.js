@@ -1,26 +1,34 @@
-describe("Editable",function() {
+describe("SimpleUpdateField",function() {
   var selector = '.phrase .text'
   
-  var should_be_an_input_after_click =  function() {
+  var should_have_a_child_input_after_click =  function() {
     // best jquery practice - use pseudo selectors after
     // using natural css selectors
     expect($(selector)
-           .filter(':input')
+           .filter('> :input')
            .size()
           ).toBe(0)
     $(selector)
           .filter(':first')
           .trigger('click.editable')
     expect($(selector)
-          .filter(':input')
+          .filter('> :input')
           .size()
          ).toBe(1)
   }
 
+  var should_leave_the_essential_element_the_same = function() {
+    var personality  = $(selector).get(0).tagName // essential element as it is
+    $(selector)
+          .filter(':first')
+          .trigger('click.editable')
+    expect($(selector).get(0).tagName).toEqual(personality);
+  }
+
 
   it("it has a constructor", function() {
-    expect(Editable).toBeDefined()
-    expect(Editable()).toBeDefined()
+    expect(SimpleUpdateField).toBeDefined()
+    expect(SimpleUpdateField()).toBeDefined()
   })
 
   describe("needs an attribute editable-resource-uri", function() {
@@ -35,7 +43,7 @@ describe("Editable",function() {
     describe("with editable declared",function() {
       beforeEach(function() {
         // Construct
-        Editable(selector)
+        SimpleUpdateField(selector)
       })
       describe("error messages in dom",function() {
             it("resource-attribute attribute",function() {
@@ -99,14 +107,14 @@ describe("Editable",function() {
     });
 
     it("selector modifies dom",function() {
-      Editable(selector)
+      SimpleUpdateField(selector)
       expect($(selector).data('editable')).toBeDefined()
     })
 
     describe("after installation",function() {
       beforeEach(function() {
 
-        Editable(selector)
+        SimpleUpdateField(selector)
       })
 
       describe("ajax request is sent",function() {
@@ -140,7 +148,8 @@ describe("Editable",function() {
 
       describe("when editing begins", function() {
         describe("an element ",function() {
-          it("is an input",should_be_an_input_after_click)
+          it("is still the element", should_leave_the_essential_element_the_same)
+          it("has an input",should_have_a_child_input_after_click)
           it("has same classes",function() {
             $(selector).addClass('cake').addClass('oat')
             $(selector).filter(':first').trigger('click.editable')
@@ -284,11 +293,11 @@ describe("Editable",function() {
         beforeEach(function() {
           $(selector).filter(':first').trigger('click.editable')
           // triffer ESC event
-          var e = jQuery.Event("keydown.editable", { keyCode: Editable.ESC_KEY })
+          var e = jQuery.Event("keydown.editable", { keyCode: SimpleUpdateField.ESC_KEY })
           $(selector).filter(':first').trigger(e)
         })
         describe("followed by a click",function() {
-          it("is an input",should_be_an_input_after_click)
+          it("is an input",should_have_a_child_input_after_click)
         })
       })
     })
@@ -303,7 +312,7 @@ describe("Editable",function() {
     });
     describe("with editable declared",function() {
       beforeEach(function() {
-        Editable(selector)
+        SimpleUpdateField(selector)
       })
       it("has a data editable-index",function() {
         expect($(selector).filter('#first').attr("editable-index")).toEqual('1')
@@ -327,7 +336,7 @@ describe("Editable",function() {
               // modify element value
               $(selector).filter('#first').val("are you a kitty?")
               // triffer ESC event
-              var e = jQuery.Event("keydown.editable", { keyCode: Editable.ESC_KEY })
+              var e = jQuery.Event("keydown.editable", { keyCode: SimpleUpdateField.ESC_KEY })
               $(selector).filter('#first').trigger(e)
 
               expect($(selector).filter('#first').text()).toEqual(expected_value)
@@ -342,7 +351,7 @@ describe("Editable",function() {
               $(selector).filter(':first').trigger('click.editable')
               // #first becomes focused
               expect($(selector).filter('#first').filter(':focus').size()).toBe(1)
-              var e = jQuery.Event("keydown.editable", { keyCode: Editable.ENTER_KEY })
+              var e = jQuery.Event("keydown.editable", { keyCode: SimpleUpdateField.ENTER_KEY })
               $(selector).filter(':first').trigger(e)
 
               // #second becomes focused
@@ -356,7 +365,7 @@ describe("Editable",function() {
               $(selector).filter('#third').trigger('click.editable')
               expect($(selector).filter('#third').filter(':focus').size()).toBe(1)
 
-              var e = jQuery.Event("keydown.editable", { keyCode: Editable.ENTER_KEY })
+              var e = jQuery.Event("keydown.editable", { keyCode: SimpleUpdateField.ENTER_KEY })
               $(selector).filter('#third').trigger(e)
 
               expect($(selector).filter('#first').filter(':focus').size()).toBe(1)
@@ -370,7 +379,7 @@ describe("Editable",function() {
               $(selector).filter(':first').trigger('click.editable')
               // #first becomes focused
               expect($(selector).filter('#first').filter(':focus').size()).toBe(1)
-              var e = jQuery.Event("keydown.editable", { keyCode: Editable.TAB_KEY })
+              var e = jQuery.Event("keydown.editable", { keyCode: SimpleUpdateField.TAB_KEY })
               $(selector).filter(':first').trigger(e)
 
               // #second becomes focused
@@ -384,7 +393,7 @@ describe("Editable",function() {
               $(selector).filter('#third').trigger('click.editable')
               expect($(selector).filter('#third').filter(':focus').size()).toBe(1)
 
-              var e = jQuery.Event("keydown.editable", { keyCode: Editable.TAB_KEY })
+              var e = jQuery.Event("keydown.editable", { keyCode: SimpleUpdateField.TAB_KEY })
               $(selector).filter('#third').trigger(e)
 
               expect($(selector).filter('#first').filter(':focus').size()).toBe(1)
