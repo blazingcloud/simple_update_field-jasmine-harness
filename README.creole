@@ -1,0 +1,27 @@
+== Test Harness  for simple_update_field
+
+Check out the  repository and run bundler
+{{{
+bundle
+}}}
+
+this will download the latest version of simple_update_field from master.
+
+
+after starting the server
+{{{
+$ rails server
+}}}
+
+The jasmine Test specs are located here
+
+http://localhost:3000/jasmine 
+
+
+if you want to check a demo of the app - load the seed data
+
+{{{
+$ rake db:seed
+}}}
+
+and visit http://localhost:3000/phrases

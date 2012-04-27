@@ -1,3 +1,9 @@
+GIT
+  remote: git://github.com/blazingcloud/simple_update_field
+  revision: 58840cecbf8ee9126c37f45b90a0484bbf4c15d3
+  specs:
+    simple_update_field (2.0.0)
+
 GEM
   remote: http://rubygems.org/
   specs:
@@ -171,5 +177,6 @@ DEPENDENCIES
   rails (= 3.1.0)
   rspec-rails
   sass-rails
+  simple_update_field!
   sqlite3
   uglifier
