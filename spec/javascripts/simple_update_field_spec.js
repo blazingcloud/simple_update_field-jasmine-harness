@@ -165,6 +165,10 @@ describe("SimpleUpdateField",function() {
           it("element is still the same element", should_leave_the_essential_element_the_same)
           it("has an input",should_have_a_child_input_after_click)
           describe("and the input  ",function() {
+            it("has a class of 'editable-input'",function() {
+              $(selector).trigger('click.editable')
+              expect(suf.current_input().hasClass('editable-input')).toBeTruthy()
+            })
             it("stores its text as input value",function() {
               $(selector).text("Lily")
               $(selector).trigger('click.editable')
@@ -232,11 +236,11 @@ describe("SimpleUpdateField",function() {
             //  the selector gains a child input on click
             //
             expect($(selector).size()).toBe(1)
-            expect($(selector).find('input').size()).toBe(0)
+            expect($(selector).find(':input').size()).toBe(0)
 
             $(selector).trigger('click.editable')
             expect($(selector).size()).toBe(1)
-            expect($(selector).find('input').size()).toBe(1)
+            expect($(selector).find(':input').size()).toBe(1)
 
             suf.current_input().trigger('blur.editable')
             expect($(selector).size()).toBe(1)
@@ -244,7 +248,7 @@ describe("SimpleUpdateField",function() {
 
             $(selector).trigger('click.editable')
             expect($(selector).size()).toBe(1)
-            expect($(selector).find('input').size()).toBe(1)
+            expect($(selector).find(':input').size()).toBe(1)
 
             suf.current_input().trigger('blur.editable')
             expect($(selector).size()).toBe(1)
@@ -252,7 +256,7 @@ describe("SimpleUpdateField",function() {
 
             $(selector).trigger('click.editable')
             expect($(selector).size()).toBe(1)
-            expect($(selector).find('input').size()).toBe(1)
+            expect($(selector).find(':input').size()).toBe(1)
           })
         })
 
