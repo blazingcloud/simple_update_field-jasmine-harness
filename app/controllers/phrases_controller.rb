@@ -1,6 +1,6 @@
 class PhrasesController < ApplicationController
   def index
-    @phrases = Phrase.limit(5)
+    @phrases = Phrase.limit(params[:limit] || 5)
   end
 
   def update

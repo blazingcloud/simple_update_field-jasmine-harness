@@ -135,6 +135,7 @@ describe("SimpleUpdateField",function() {
 
         describe("ajax request is sent",function() {
           beforeEach(function() {
+            clearAjaxRequests()
             spyOn(jQuery.ajaxSettings, 'xhr').andCallFake(function() {
               var newXhr = new FakeXMLHttpRequest();
               ajaxRequests.push(newXhr);
@@ -148,8 +149,8 @@ describe("SimpleUpdateField",function() {
 
             // become editable
             $(selector).trigger('click.editable')
-            // change value
-            suf.current_input().val("passion")
+            // change value whitespace is ignored
+            suf.current_input().val("  passion  ")
             suf.current_input().trigger('blur.editable')
 
             request = mostRecentAjaxRequest()
@@ -158,6 +159,25 @@ describe("SimpleUpdateField",function() {
             expect(request.params).toMatch(/phrase%5Btext%5D=passion/)
             expect(request.method).toMatch(/PUT/)
             expect(request.url).toMatch("http://cake123/")
+          })
+          describe("does not send ajax request",function(){
+          it("when there is no change",function() {
+            $(selector).trigger('click.editable')
+            suf.current_input().trigger('blur.editable')
+
+            request = mostRecentAjaxRequest()
+            expect(request).toBeNull()
+          })
+          it("when the change is whitespace on begining or end",function() {
+            $(selector).trigger('click.editable')
+
+            var current_value = suf.current_input().val()
+            suf.current_input().val(' ' + current_value + ' ')
+            suf.current_input().trigger('blur.editable')
+
+            request = mostRecentAjaxRequest()
+            expect(request).toBeNull()
+          })
           })
         })
 
@@ -289,9 +309,9 @@ describe("SimpleUpdateField",function() {
         suf = SimpleUpdateField(selector)
       })
       it("has a data editable-index",function() {
-        expect($(selector).filter('#first').attr("editable-index")).toEqual('1')
-        expect($(selector).filter('#second').attr("editable-index")).toEqual('2')
-        expect($(selector).filter('#third').attr("editable-index")).toEqual('3')
+        expect($(selector).filter('#first').attr("editable-index")).toEqual('0')
+        expect($(selector).filter('#second').attr("editable-index")).toEqual('1')
+        expect($(selector).filter('#third').attr("editable-index")).toEqual('2')
 
       })
       describe("editable life-cycle",function() {
@@ -302,6 +322,22 @@ describe("SimpleUpdateField",function() {
         describe("on editing node there is a keydown handler", function() {
 
           describe("the esc key", function() {
+            it("returns the input to it's original value without extra whitespace", function () {
+              // we have the original text has whitespace 
+
+              var untrimmed_value = '    ...are you a kitty ?... '
+              var trimmed_value   = untrimmed_value.trim()
+
+              $(selector).filter('#first').text(untrimmed_value)
+              $(selector).filter('#first').trigger('click.editable')
+
+              // triffer ESC event
+              var e = jQuery.Event("keydown.editable", { keyCode: SimpleUpdateField.ESC_KEY })
+              suf.current_input().trigger(e)
+
+              expect($(selector).filter('#first').text()).toEqual(trimmed_value)
+
+            })
             it("returns the input to it's original value", function () {
               // we have the original text
               var expected_value = $(selector).filter('#first').text()
