@@ -92,23 +92,26 @@ SimpleUpdateField = function(selector) {
       commit_to_remote_resource(input_node)
     }
   }
+
+  var editable_restoration = function(element,text_value) {
+    element.text(text_value)
+    install_edit_notions(element)
+  }
+
   var rollback_edit_event = function(event) {
     var finished_input_node = $(this)
     var parent = finished_input_node.parent();
 
     editable_restoration(parent,finished_input_node.data('original-text')) // the input we create had a memo about it's original text
   }
-  var editable_restoration = function(element,text_value) {
-    element.text(text_value)
-    install_edit_notions(element)
-  }
+
   var complete_edit_event = function(event) {
 
     var finished_input_node = $(this)
+    var parent = finished_input_node.parent();
+
     commit_if_changed(finished_input_node)
 
-
-    var parent = finished_input_node.parent();
     editable_restoration(parent,finished_input_node.val())
 
     // If tab key was hit during the edit phase
