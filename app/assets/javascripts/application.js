@@ -11,4 +11,11 @@
 //
 $(document).ready(function() {
   SimpleUpdateField('.phrase .text')
+  SimpleUpdateField('.phrase .id' 
+                    , {
+                      before_update: function() {
+                        var input = this
+                        return confirm("Update the database with " + input.value +" ?")
+                      }
+                    })
 })

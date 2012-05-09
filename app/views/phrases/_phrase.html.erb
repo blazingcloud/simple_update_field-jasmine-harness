@@ -1,8 +1,14 @@
 <div class="phrase">
-  <span editable-resource-attribute="text"
+  <div editable-resource-attribute="text"
         editable-resource-model="<%=phrase.class.model_name.downcase%>"
         editable-resource-uri="<%=url_for(phrase)%>"
         class="text">
     <%= phrase.text %>
-  </span>
+  </div>
+  <div editable-resource-attribute="id"
+        editable-resource-model="<%=phrase.class.model_name.downcase%>"
+        editable-resource-uri="<%=url_for(phrase)%>"
+        class="id">
+    <%= phrase.id %>
+  </div>
 </div>

@@ -49,7 +49,7 @@ describe("SimpleUpdateField",function() {
             .trigger('click')
             $(selector)
             .filter(':first')
-            .trigger('blur.editable')
+            .trigger('complete.editable')
 
             expect($('.editable-errors')
                    .text()
@@ -62,7 +62,7 @@ describe("SimpleUpdateField",function() {
             $(selector)
             .trigger('click')
             $(selector)
-            .trigger('blur.editable')
+            .trigger('complete.editable')
 
             expect($('.editable-errors')
                    .text()
@@ -75,7 +75,7 @@ describe("SimpleUpdateField",function() {
             $(selector)
             .trigger('click')
             $(selector)
-            .trigger('blur.editable')
+            .trigger('complete.editable')
 
             expect($('.editable-errors')
                    .text()
@@ -142,62 +142,89 @@ describe("SimpleUpdateField",function() {
             return newXhr;
           })
         })
-          it("before_update callback runs ",function() {
-            var callback_ran = false
+        it("before_update callback runs ",function() {
+          var callback_ran = false
+          suf = SimpleUpdateField(selector, { before_update: function() {
+            callback_ran = true
+            return true 
+          }})
+          $(selector).trigger('click')
+          suf.current_input().val("  passion  ")
+          suf.current_input().trigger('complete.editable')
+
+          expect(callback_ran).toBeTruthy()
+        })
+        it("before_update callback has 'this' bound to the input ",function() {
+          var callback_this
+          suf = SimpleUpdateField(selector, { before_update: function() {
+            callback_this = this
+            return true 
+          }})
+          $(selector).trigger('click')
+          suf.current_input().val("  passion  ")
+
+          var input = suf.current_input().get(0)
+          suf.current_input().trigger('complete.editable')
+
+          expect(callback_this).toBe(input)
+        })
+        describe("before_update callback", function() {
+          it("that returns true cause appropriate ajax request ",function() {
             suf = SimpleUpdateField(selector, { before_update: function() {
-              callback_ran = true
               return true 
             }})
-              $(selector).trigger('click')
-              suf.current_input().val("  passion  ")
-              suf.current_input().trigger('blur.editable')
 
-            expect(callback_ran).toBeTruthy()
+
+            $(selector).trigger('click')
+            suf.current_input().val("  passion  ")
+            suf.current_input().trigger('complete.editable')
+
+            var request = mostRecentAjaxRequest()
+            expect(request).not.toBeNull()
+
           })
-          describe("before_update callback", function() {
-            it("that returns true cause appropriate ajax request ",function() {
-              suf = SimpleUpdateField(selector, { before_update: function() {
-                return true 
-              }})
+          it("that returns false restores dom to non",function() {
+            suf = SimpleUpdateField(selector, { before_update: function() {
+              return false
+            }})
 
+            $(selector).trigger('click')
+            suf.current_input().val("  passion  ")
+            suf.current_input().trigger('complete.editable')
 
-              $(selector).trigger('click')
-              suf.current_input().val("  passion  ")
-              suf.current_input().trigger('blur.editable')
+            var request = mostRecentAjaxRequest()
+            expect(request).toBeNull()
 
-              var request = mostRecentAjaxRequest()
-              expect(request).not.toBeNull()
-
-            })
-            it("that returns false doesn't do ajax request",function() {
-              suf = SimpleUpdateField(selector, { before_update: function() {
-                return false
-              }})
-
-              $(selector).trigger('click')
-              suf.current_input().val("  passion  ")
-              suf.current_input().trigger('blur.editable')
-
-              var request = mostRecentAjaxRequest()
-              expect(request).toBeNull()
-
-            })
-            it("that returns false rollback changes",function() {
-              suf = SimpleUpdateField(selector, { before_update: function() {
-                return false
-              }})
-
-              var original_text = $(selector).text()
-
-              $(selector).trigger('click')
-
-              suf.current_input().val("  passion  ")
-              suf.current_input().trigger('blur.editable')
-
-              expect($(selector).text()).toEqual(original_text)
-
-            })
           })
+          it("that returns false doesn't do ajax request",function() {
+            suf = SimpleUpdateField(selector, { before_update: function() {
+              return false
+            }})
+
+            $(selector).trigger('click')
+            suf.current_input().val("  passion  ")
+            suf.current_input().trigger('complete.editable')
+
+            var request = mostRecentAjaxRequest()
+            expect(request).toBeNull()
+
+          })
+          it("that returns false rollback changes",function() {
+            suf = SimpleUpdateField(selector, { before_update: function() {
+              return false
+            }})
+
+            var original_text = $(selector).text()
+
+            $(selector).trigger('click')
+
+            suf.current_input().val("  passion  ")
+            suf.current_input().trigger('complete.editable')
+
+            expect($(selector).text()).toEqual(original_text)
+
+          })
+        })
       })
       describe("after installation with ajax spy",function() {
         var suf = null;
@@ -212,20 +239,20 @@ describe("SimpleUpdateField",function() {
         })
         describe("ajax request is sent",function() {
           beforeEach(function() {
-          
+
             $(selector).attr('editable-resource-uri',"http://cake123/")
             $(selector).attr('editable-resource-model',"phrase")
             $(selector).attr('editable-resource-attribute',"text")
             // become editable
             $(selector).trigger('click')
-          
+
           })
 
           var ajax_request_should_be_sent = function() {
 
             // change value whitespace is ignored
             suf.current_input().val("  passion  ")
-            suf.current_input().trigger('blur.editable')
+            suf.current_input().trigger('complete.editable')
 
             var request = mostRecentAjaxRequest()
             expect(request).not.toBeNull()
@@ -234,13 +261,13 @@ describe("SimpleUpdateField",function() {
             expect(request.url).toMatch("http://cake123/")
 
           }
-               })
+        })
 
         describe("does not send ajax request",function(){
 
           it("when there is no change",function() {
             $(selector).trigger('click')
-            suf.current_input().trigger('blur.editable')
+            suf.current_input().trigger('complete.editable')
 
             var request = mostRecentAjaxRequest()
             expect(request).toBeNull()
@@ -250,7 +277,7 @@ describe("SimpleUpdateField",function() {
 
             var current_value = suf.current_input().val()
             suf.current_input().val(' ' + current_value + ' ')
-            suf.current_input().trigger('blur.editable')
+            suf.current_input().trigger('complete.editable')
 
             var request = mostRecentAjaxRequest()
             expect(request).toBeNull()
@@ -310,7 +337,7 @@ describe("SimpleUpdateField",function() {
             $(selector).trigger('click')
             expect(suf.current_input().val()).toEqual("SOUP")
             suf.current_input().val("are you a kitty?")
-            suf.current_input().trigger('blur.editable')
+            suf.current_input().trigger('complete.editable')
             expect($(selector).text()).toEqual("are you a kitty?")
 
           })
@@ -346,7 +373,7 @@ describe("SimpleUpdateField",function() {
             expect($(selector).size()).toBe(1)
             expect($(selector).find(':input').size()).toBe(1)
 
-            suf.current_input().trigger('blur.editable')
+            suf.current_input().trigger('complete.editable')
             expect($(selector).size()).toBe(1)
             expect($(selector).children().size()).toBe(0)
 
@@ -354,7 +381,7 @@ describe("SimpleUpdateField",function() {
             expect($(selector).size()).toBe(1)
             expect($(selector).find(':input').size()).toBe(1)
 
-            suf.current_input().trigger('blur.editable')
+            suf.current_input().trigger('complete.editable')
             expect($(selector).size()).toBe(1)
             expect($(selector).children().size()).toBe(0)
 
@@ -404,7 +431,7 @@ describe("SimpleUpdateField",function() {
           expect($(selector).find(':focus').size()).toBe(0)
         })
         describe("on editing node there is a keydown handler", function() {
-
+           
           describe("the esc key", function() {
             it("returns the input to it's original value without extra whitespace", function () {
               // we have the original text has whitespace 
