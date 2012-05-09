@@ -5,7 +5,7 @@ describe("SimpleUpdateField",function() {
     expect(SimpleUpdateField).toBeDefined()
     expect(SimpleUpdateField()).toBeDefined()
   })
- 
+
   describe("with a single match in dom",function() {
     var selector_input = '.phrase .text > :input'
 
@@ -126,46 +126,123 @@ describe("SimpleUpdateField",function() {
         SimpleUpdateField(selector)
         expect($(selector).data('editable')).toBeDefined()
       })
+      describe("after installation with callbacks", function() {
+        beforeEach(function() {
 
-      describe("after installation",function() {
+          // SimpleUpdateField annotations for doing updates
+          $(selector).attr('editable-resource-uri',"http://cake123/")
+          $(selector).attr('editable-resource-model',"phrase")
+          $(selector).attr('editable-resource-attribute',"text")
+
+
+          clearAjaxRequests()
+          spyOn(jQuery.ajaxSettings, 'xhr').andCallFake(function() {
+            var newXhr = new FakeXMLHttpRequest();
+            ajaxRequests.push(newXhr);
+            return newXhr;
+          })
+        })
+          it("before_update callback runs ",function() {
+            var callback_ran = false
+            suf = SimpleUpdateField(selector, { before_update: function() {
+              callback_ran = true
+              return true 
+            }})
+              $(selector).trigger('click')
+              suf.current_input().val("  passion  ")
+              suf.current_input().trigger('blur.editable')
+
+            expect(callback_ran).toBeTruthy()
+          })
+          describe("before_update callback", function() {
+            it("that returns true cause appropriate ajax request ",function() {
+              suf = SimpleUpdateField(selector, { before_update: function() {
+                return true 
+              }})
+
+
+              $(selector).trigger('click')
+              suf.current_input().val("  passion  ")
+              suf.current_input().trigger('blur.editable')
+
+              var request = mostRecentAjaxRequest()
+              expect(request).not.toBeNull()
+
+            })
+            it("that returns false doesn't do ajax request",function() {
+              suf = SimpleUpdateField(selector, { before_update: function() {
+                return false
+              }})
+
+              $(selector).trigger('click')
+              suf.current_input().val("  passion  ")
+              suf.current_input().trigger('blur.editable')
+
+              var request = mostRecentAjaxRequest()
+              expect(request).toBeNull()
+
+            })
+            it("that returns false rollback changes",function() {
+              suf = SimpleUpdateField(selector, { before_update: function() {
+                return false
+              }})
+
+              var original_text = $(selector).text()
+
+              $(selector).trigger('click')
+
+              suf.current_input().val("  passion  ")
+              suf.current_input().trigger('blur.editable')
+
+              expect($(selector).text()).toEqual(original_text)
+
+            })
+          })
+      })
+      describe("after installation with ajax spy",function() {
         var suf = null;
         beforeEach(function() {
           suf = SimpleUpdateField(selector)
+          clearAjaxRequests()
+          spyOn(jQuery.ajaxSettings, 'xhr').andCallFake(function() {
+            var newXhr = new FakeXMLHttpRequest();
+            ajaxRequests.push(newXhr);
+            return newXhr;
+          })
         })
-
         describe("ajax request is sent",function() {
           beforeEach(function() {
-            clearAjaxRequests()
-            spyOn(jQuery.ajaxSettings, 'xhr').andCallFake(function() {
-              var newXhr = new FakeXMLHttpRequest();
-              ajaxRequests.push(newXhr);
-              return newXhr;
-            })
-          })
-          it("when editing is complete",function() {
+          
             $(selector).attr('editable-resource-uri',"http://cake123/")
             $(selector).attr('editable-resource-model',"phrase")
             $(selector).attr('editable-resource-attribute',"text")
-
             // become editable
             $(selector).trigger('click')
+          
+          })
+
+          var ajax_request_should_be_sent = function() {
+
             // change value whitespace is ignored
             suf.current_input().val("  passion  ")
             suf.current_input().trigger('blur.editable')
 
-            request = mostRecentAjaxRequest()
-            console.log(request)
+            var request = mostRecentAjaxRequest()
             expect(request).not.toBeNull()
             expect(request.params).toMatch(/phrase%5Btext%5D=passion/)
             expect(request.method).toMatch(/PUT/)
             expect(request.url).toMatch("http://cake123/")
-          })
-          describe("does not send ajax request",function(){
+
+          }
+               })
+
+        describe("does not send ajax request",function(){
+
           it("when there is no change",function() {
             $(selector).trigger('click')
             suf.current_input().trigger('blur.editable')
 
-            request = mostRecentAjaxRequest()
+            var request = mostRecentAjaxRequest()
             expect(request).toBeNull()
           })
           it("when the change is whitespace on begining or end",function() {
@@ -175,9 +252,8 @@ describe("SimpleUpdateField",function() {
             suf.current_input().val(' ' + current_value + ' ')
             suf.current_input().trigger('blur.editable')
 
-            request = mostRecentAjaxRequest()
+            var request = mostRecentAjaxRequest()
             expect(request).toBeNull()
-          })
           })
         })
 
