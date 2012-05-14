@@ -64,16 +64,16 @@ SimpleUpdateField = function(selector, options) {
     return false
   }
   var move_to_next_sibling = function(element) {
-    if(element.attr('editable-index')) {
-      var next_position = parseInt(element.attr('editable-index')) +1
-      var next_editable = $(selector).filter('[editable-index='+next_position+']')
-      if (next_editable.size() == 0) {
-        next_editable = $(selector).filter('[editable-index=0]')
-      }
-      next_editable.trigger('click.editable')
-    }else {
-      throw 'Expected to find custom attribute editable-index'
-    }
+    //if(element.attr('editable-index')) {
+      //var next_position = parseInt(element.attr('editable-index')) +1
+      //var next_editable = $(selector).filter('[editable-index='+next_position+']')
+      //if (next_editable.size() == 0) {
+        //next_editable = $(selector).filter('[editable-index=0]')
+      //}
+      //next_editable.trigger('click.editable')
+    //}else {
+      //throw 'Expected to find custom attribute editable-index'
+    //}
   }
   var commit_to_remote_resource = function(input_node) {
     uri        = input_node.attr('editable-resource-uri')
