@@ -407,6 +407,65 @@ describe("SimpleUpdateField",function() {
     })
   })
 
+  describe("with two matches for two seperate selectors",function() {
+    beforeEach(function(){
+      var fixture  = "<div class='phrase'><span id='text-first' editable-resource-uri='http://s/r/i' class='text'>CAKE1</span></div>"
+      fixture += "<div class='phrase'><span id='text-second' editable-resource-uri='http://s/r/i' class='text'>CAKE2</span></div>"
+      fixture += "<div class='phrase'><span id='id-first' editable-resource-uri='http://s/r/i' class='id'>CAMEL</span></div>"
+      fixture += "<div class='phrase'><span id='id-second' editable-resource-uri='http://s/r/i' class='id'>OWL</span></div>"
+      setFixtures(fixture)
+    });
+    describe("and two of SimpleUpdateField ",function(){
+      var second_suf = null
+      beforeEach(function() {
+        SimpleUpdateField('.phrase .text')
+        second_suf = SimpleUpdateField('.phrase .id')
+      })
+      it('all elements of phrase class should have class : suf-editable',function() {
+        $('.phrase .text,.phrase .id').each(function(i,el) {
+          expect($(el)).toHaveClass('suf-editable')
+        })
+      })
+
+      it('upon clicking a node has class : suf-editable-active',function() {
+        var $el = $('#id-first')
+        $el.trigger('click')
+        expect($el).toHaveClass('suf-editable-active')
+      })
+      describe('with a clicked node',function(){
+        var $clicked_node = null
+        beforeEach(function() {
+          $clicked_node = $('#id-first')
+          $clicked_node.trigger('click')
+        })
+        it('clicking a new node in seperate selector group has class : suf-editable-active',function() {
+          var $el = $('#text-second')
+          $el.trigger('click')
+          expect($el).toHaveClass('suf-editable-active')
+        })
+        it('original node does not have class : suf-editable-active',function() {
+          var $el = $('#text-second')
+          $el.trigger('click')
+          expect($clicked_node).not.toHaveClass('suf-editable-active')
+        })
+        it('clicking a new node in the same group should only allow one active input at a time',function() {
+          expect($('.phrase .id > input').length).toBe(1)
+
+          var $el = $('#id-second')
+          $el.trigger('click')
+          expect($('.phrase .id > input').length).toBe(1)
+        })
+        it('clicking a new node in seperate selector suf should only allow one active input at a time across all',function() {
+          expect($('.phrase .id > input, .phrase .text > input').length).toBe(1)
+
+          var $el = $('#text-second')
+          $el.trigger('click')
+          expect($('.phrase .id > input, .phrase .text > input').length).toBe(1)
+        })
+      })
+    })
+  })
+
   describe("with multiple matches in dom",function() {
     beforeEach(function(){
       var fixture  = "<div class='phrase'><span id='first' editable-resource-uri='http://s/r/i' class='text'>CAKE1</span></div>"
@@ -431,7 +490,7 @@ describe("SimpleUpdateField",function() {
           expect($(selector).find(':focus').size()).toBe(0)
         })
         describe("on editing node there is a keydown handler", function() {
-           
+
           describe("the esc key", function() {
             it("returns the input to it's original value without extra whitespace", function () {
               // we have the original text has whitespace 

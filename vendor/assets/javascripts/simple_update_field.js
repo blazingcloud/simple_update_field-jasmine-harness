@@ -1,5 +1,9 @@
 //1
 SimpleUpdateField = function(selector, options) {
+  SimpleUpdateField.current_active = ( SimpleUpdateField.current_active || null )
+  SimpleUpdateField.TAB_KEY   = 9   // tab is   #9
+  SimpleUpdateField.ENTER_KEY = 13  // enter is #13
+  SimpleUpdateField.ESC_KEY   = 27  // enter is #13
   var self = this
   /*
    * This is used internally to track what key has been
@@ -36,8 +40,17 @@ SimpleUpdateField = function(selector, options) {
   }
 
   var begin_edit_event = function(event) {
-      var clicked_node = $(this);
-      var input_node = create_input_from(clicked_node);
+      var clicked_node = $(this)
+
+      if(SimpleUpdateField.current_active) {
+        SimpleUpdateField.current_active.removeClass('suf-editable-active')
+        SimpleUpdateField.current_active.children('input').trigger('complete.editable')
+      }
+
+      SimpleUpdateField.current_active = clicked_node
+
+      var input_node = create_input_from(clicked_node)
+      clicked_node.addClass('suf-editable-active')
       clicked_node.text("")
       clicked_node.append(input_node)
       install_edit_complete_notions(input_node)
@@ -64,16 +77,16 @@ SimpleUpdateField = function(selector, options) {
     return false
   }
   var move_to_next_sibling = function(element) {
-    //if(element.attr('editable-index')) {
-      //var next_position = parseInt(element.attr('editable-index')) +1
-      //var next_editable = $(selector).filter('[editable-index='+next_position+']')
-      //if (next_editable.size() == 0) {
-        //next_editable = $(selector).filter('[editable-index=0]')
-      //}
-      //next_editable.trigger('click.editable')
-    //}else {
-      //throw 'Expected to find custom attribute editable-index'
-    //}
+    if(element.attr('editable-index')) {
+      var next_position = parseInt(element.attr('editable-index')) +1
+      var next_editable = $(selector).filter('[editable-index='+next_position+']')
+      if (next_editable.size() == 0) {
+        next_editable = $(selector).filter('[editable-index=0]')
+      }
+      next_editable.trigger('click.editable')
+    }else {
+      throw 'Expected to find custom attribute editable-index'
+    }
   }
   var commit_to_remote_resource = function(input_node) {
     uri        = input_node.attr('editable-resource-uri')
@@ -144,7 +157,6 @@ SimpleUpdateField = function(selector, options) {
   }
 
   var install_edit_notions = function(selector) {
-
     $(selector).bind('click.editable',begin_edit_event)
     $(selector).bind('mouseover.editable',function() {
       $(this).addClass('editable-hover')
@@ -203,6 +215,7 @@ SimpleUpdateField = function(selector, options) {
   }
 
   var install = function() {
+    $(selector).addClass('suf-editable')
     install_edit_notions(selector)
     annotate_editable_with_position(selector)
     annotate_with_resource_errors(selector)
@@ -210,6 +223,3 @@ SimpleUpdateField = function(selector, options) {
   }()
   return self;
 }
-SimpleUpdateField.TAB_KEY   = 9   // tab is   #9
-SimpleUpdateField.ENTER_KEY = 13  // enter is #13
-SimpleUpdateField.ESC_KEY   = 27  // enter is #13
