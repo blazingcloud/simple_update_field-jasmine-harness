@@ -496,7 +496,7 @@ describe("SimpleUpdateField",function() {
               // we have the original text has whitespace 
 
               var untrimmed_value = '    ...are you a kitty ?... '
-              var trimmed_value   = untrimmed_value.trim()
+              var trimmed_value   = $.trim(untrimmed_value)
 
               $(selector).filter('#first').text(untrimmed_value)
               $(selector).filter('#first').trigger('click')
