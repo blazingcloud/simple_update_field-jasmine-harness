@@ -1,6 +1,12 @@
 describe("SimpleUpdateField",function() {
   var selector = '.phrase .text'
 
+  it("is IE ",function() {
+    if (navigator.appName == 'Microsoft Internet Explorer') {
+        alert("this test-harness has not yet found a way to work with the focus pseudo selector on ie")
+    }
+  })
+
   it("it has a constructor", function() {
     expect(SimpleUpdateField).toBeDefined()
     expect(SimpleUpdateField()).toBeDefined()
